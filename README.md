@@ -1,2 +1,2 @@
 # jatoo-cli-image
-JaToo CLI implementation for the "image" command.
+The "image" command for the JaToo CLI project.
