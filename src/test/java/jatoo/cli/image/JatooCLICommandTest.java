@@ -22,33 +22,62 @@ public class JatooCLICommandTest {
 
   public static void main(String[] args) {
     
+//    new JatooCLI().execute(
+//        new String[] {
+//            "-image",
+//            "-resize",
+//            "-fill",
+//            "-widthx", "800",
+//            "-height", "800",
+//            "-removeMetadata",
+//            "-overwrite",
+//            "-in", "src/test/resources/jatoo/cli/image/20141109144518.jpg",
+//            "-out", "target/tests"
+//        });
+//    
+//    System.out.println();
+//    System.out.println("====================================================================================================");
+//    System.out.println();
+//    
+//    new JatooCLI().execute(
+//        new String[] {
+//            "-image",
+//            "-resize",
+//            "-fit",
+//            "-width", "800",
+//            "-height", "800",
+//            "-removeMetadata",
+//            "-overwritex",
+//            "-in", "src/test/resources/jatoo/cli/image/",
+//            "-out", "target/tests"
+//        });
+//    
+//    System.out.println();
+//    System.out.println("====================================================================================================");
+//    System.out.println();
+    
     new JatooCLI().execute(
         new String[] {
             "-image",
-            "-resize",
-            "-fit",
-            "-width", "800",
-            "-height", "800",
-            "-in", "src/test/resources/jatoo/cli/image/20141109144518.jpg",
-            "-out", "target/tests",
-            "-removeMetadata",
-            "-overwrite" });
+            "-rename",
+            "-pattern", "yyyyMMdd-HHmmss",
+            "-src", "c:\\Users\\cristian.sulea\\Downloads\\xxx\\20170507_082444585_iOS.jpg",
+            "-dst", "c:\\Users\\cristian.sulea\\Downloads\\yyy"
+        });
     
-    System.out.println();
-    System.out.println("====================================================================================================");
-    System.out.println();
-    
-    new JatooCLI().execute(
-        new String[] {
-            "-image",
-            "-resize",
-            "-fit",
-            "-width", "800",
-            "-height", "800",
-            "-in", "src/test/resources/jatoo/cli/image/",
-            "-out", "target/tests",
-            "-removeMetadata",
-            "-overwrite" });
+//    System.out.println();
+//    System.out.println("====================================================================================================");
+//    System.out.println();
+//    
+//    new JatooCLI().execute(
+//        new String[] {
+//            "-image",
+//            "-rename",
+//            "-pattern", "yyyyMMdd-HHmmss-${counter}",
+//            "-counterDigits", "5",
+//            "-src", "c:\\Users\\cristian.sulea\\Downloads\\xxx",
+//            "-dst", "c:\\Users\\cristian.sulea\\Downloads\\yyy"
+//        });
   }
 
 }

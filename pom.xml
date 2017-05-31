@@ -49,6 +49,11 @@
       <artifactId>jatoo-image</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>net.sulea.cristian</groupId>
+      <artifactId>jatoo-image-metadata-exiftool</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
   </dependencies>
 

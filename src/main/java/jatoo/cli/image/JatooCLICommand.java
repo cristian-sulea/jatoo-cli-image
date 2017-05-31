@@ -18,8 +18,13 @@ package jatoo.cli.image;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
 import java.nio.file.NotDirectoryException;
+import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -28,6 +33,7 @@ import org.apache.commons.cli.Options;
 
 import jatoo.cli.AbstractCommand;
 import jatoo.image.ImageFileFilter;
+import jatoo.image.ImageMetadataHandler;
 import jatoo.image.ImageUtils;
 
 public class JatooCLICommand extends AbstractCommand {
@@ -43,6 +49,7 @@ public class JatooCLICommand extends AbstractCommand {
     optionGroup.addOption(Option.builder("resize").desc(getText("desc.option.resize")).build());
     optionGroup.addOption(Option.builder("crop").desc(getText("desc.option.crop")).build());
     optionGroup.addOption(Option.builder("rotate").desc(getText("desc.option.rotate")).build());
+    optionGroup.addOption(Option.builder("rename").desc(getText("desc.option.rename")).build());
 
     Options options = new Options();
     options.addOptionGroup(optionGroup);
@@ -67,6 +74,10 @@ public class JatooCLICommand extends AbstractCommand {
 
       else if (line.hasOption("rotate")) {
         // resize(line.getArgs());
+      }
+
+      else if (line.hasOption("rename")) {
+        rename(line.getArgs());
       }
 
       else {
@@ -128,10 +139,10 @@ public class JatooCLICommand extends AbstractCommand {
     Options options = new Options();
     options.addOption(Option.builder("width").hasArg().required(true).desc(getText("desc.option.resize." + (fit ? "fit" : "fill") + ".width")).build());
     options.addOption(Option.builder("height").hasArg().required(true).desc(getText("desc.option.resize." + (fit ? "fit" : "fill") + ".height")).build());
-    options.addOption(Option.builder("in").hasArg().required(true).desc(getText("desc.option.resize.in")).build());
-    options.addOption(Option.builder("out").hasArg().required(true).desc(getText("desc.option.resize.out")).build());
     options.addOption(Option.builder("removeMetadata").required(false).desc(getText("desc.option.resize.removeMetadata")).build());
     options.addOption(Option.builder("overwrite").required(false).desc(getText("desc.option.resize.overwrite")).build());
+    options.addOption(Option.builder("src").hasArg().required(true).desc(getText("desc.option.resize.src")).build());
+    options.addOption(Option.builder("dst").hasArg().required(true).desc(getText("desc.option.resize.dst")).build());
 
     //
     // parse
@@ -145,61 +156,73 @@ public class JatooCLICommand extends AbstractCommand {
 
       int width = Integer.parseInt(line.getOptionValue("width"));
       int height = Integer.parseInt(line.getOptionValue("height"));
-      File in = new File(line.getOptionValue("in"));
-      File out = new File(line.getOptionValue("out"));
+
       boolean removeMetadata = line.hasOption("removeMetadata");
       boolean overwrite = line.hasOption("overwrite");
 
-      if (!in.exists()) {
-        throw new FileNotFoundException("input does not exists: " + in.getAbsolutePath());
+      File src = new File(line.getOptionValue("src"));
+      File dst = new File(line.getOptionValue("dst"));
+
+      if (!src.exists()) {
+        throw new FileNotFoundException("source file (or folder) does not exists: " + src.getAbsolutePath());
       }
 
-      if (!out.exists()) {
-        out.mkdirs();
+      if (!dst.exists()) {
+        dst.mkdirs();
       }
-      if (!out.isDirectory()) {
-        throw new NotDirectoryException(out.getAbsolutePath());
+      if (!dst.isDirectory()) {
+        throw new NotDirectoryException(dst.getAbsolutePath());
       }
 
-      if (in.isFile()) {
+      if (src.isFile()) {
 
-        File inImageFile = in;
-        File outImageFile = new File(out, inImageFile.getName());
+        File srcImageFile = src;
+        File dstImageFile = new File(dst, srcImageFile.getName());
 
         if (!overwrite) {
-          if (outImageFile.exists()) {
-            throw new FileAlreadyExistsException(outImageFile.getPath(), null, "file already exists" + System.getProperty("line.separator") + "use \"-overwrite\" option to overwrite existing file)");
+          if (dstImageFile.exists()) {
+            throw new FileAlreadyExistsException(dstImageFile.getPath(), null, "file already exists" + System.getProperty("line.separator") + "use \"-overwrite\" option to overwrite existing file)");
           }
         }
 
-        System.out.println(getText("text.resizing.1.image", inImageFile.getName()));
+        System.out.println(getText("text.resizing.1.image", srcImageFile.getName()));
 
-        ImageUtils.resizeTo(fit, inImageFile, outImageFile, width, height, !removeMetadata);
+        ImageUtils.resizeTo(fit, srcImageFile, dstImageFile, width, height);
+        if (!removeMetadata) {
+          if (!ImageMetadataHandler.getInstance().copyMetadata(srcImageFile, dstImageFile)) {
+            throw new IOException("failed to copy the metadata");
+          }
+        }
 
         System.out.println(getText("text.done"));
       }
 
-      else if (in.isDirectory()) {
+      else if (src.isDirectory()) {
 
-        File[] inImageFiles = in.listFiles(ImageFileFilter.getInstance());
+        File[] srcImageFiles = src.listFiles(ImageFileFilter.getInstance());
 
         if (!overwrite) {
-          for (File inImageFile : inImageFiles) {
-            File outImageFile = new File(out, inImageFile.getName());
-            if (outImageFile.exists()) {
-              throw new FileAlreadyExistsException(outImageFile.getPath(), null, "file already exists" + System.getProperty("line.separator") + "use \"-overwrite\" option to overwrite existing files");
+          for (File srcImageFile : srcImageFiles) {
+            File dstImageFile = new File(dst, srcImageFile.getName());
+            if (dstImageFile.exists()) {
+              throw new FileAlreadyExistsException(dstImageFile.getPath(), null, "file already exists" + System.getProperty("line.separator") + "use \"-overwrite\" option to overwrite existing files");
             }
           }
         }
 
-        System.out.println(getText("text.resizing.n.images.1", inImageFiles.length, in.getPath()));
+        System.out.println(getText("text.resizing.n.images.1", srcImageFiles.length, src.getPath()));
 
-        for (File inImageFile : inImageFiles) {
-          File outImageFile = new File(out, inImageFile.getName());
+        for (File srcImageFile : srcImageFiles) {
+          File dstImageFile = new File(dst, srcImageFile.getName());
 
-          ImageUtils.resizeTo(fit, inImageFile, outImageFile, width, height, !removeMetadata);
+          ImageUtils.resizeTo(fit, srcImageFile, dstImageFile, width, height);
+          if (!removeMetadata) {
+            if (!ImageMetadataHandler.getInstance().copyMetadata(srcImageFile, dstImageFile)) {
+              throw new IOException("failed to copy the metadata");
+            }
+          }
 
-          System.out.println(getText("text.resizing.n.images.2", outImageFile.getName()));
+          System.out.println(getText("text.resizing.n.images.2", dstImageFile.getName()));
         }
 
         System.out.println(getText("text.done"));
@@ -212,6 +235,149 @@ public class JatooCLICommand extends AbstractCommand {
 
     catch (Throwable e) {
       printHelp("-image -resize -" + (fit ? "fit" : "fill"), options, e);
+    }
+  }
+
+  private void rename(final String[] args) {
+
+    //
+    // options
+
+    OptionGroup caseGroup = new OptionGroup();
+    caseGroup.setRequired(false);
+    caseGroup.addOption(Option.builder("toLowerCase").desc(getText("desc.option.resize.toLowerCase")).build());
+    caseGroup.addOption(Option.builder("toUpperCase").desc(getText("desc.option.resize.toUpperCase")).build());
+
+    Options options = new Options();
+    options.addOption(Option.builder("pattern").hasArg().required(true).desc(getText("desc.option.rename.pattern")).build());
+    options.addOption(Option.builder("counterDigits").hasArg().required(false).desc(getText("desc.option.resize.counterDigits")).build());
+    options.addOptionGroup(caseGroup);
+    options.addOption(Option.builder("src").hasArg().required(true).desc(getText("desc.option.resize.src")).build());
+    options.addOption(Option.builder("dst").hasArg().required(true).desc(getText("desc.option.resize.dst")).build());
+
+    //
+    // parse
+
+    try {
+
+      CommandLine line = parse(options, args, true);
+
+      //
+      // and work
+
+      String pattern = line.getOptionValue("pattern");
+      int counterDigits = Integer.parseInt(line.getOptionValue("counterDigits", "0"));
+      boolean toLowerCase = line.hasOption("toLowerCase");
+      boolean toUpperCase = line.hasOption("toUpperCase");
+
+      File src = new File(line.getOptionValue("src"));
+      File dst = new File(line.getOptionValue("dst"));
+
+      NumberFormat counterNF = NumberFormat.getIntegerInstance();
+      counterNF.setGroupingUsed(false);
+      counterNF.setMinimumIntegerDigits(counterDigits);
+
+      if (!src.exists()) {
+        throw new FileNotFoundException("source file (or folder) does not exists: " + src.getAbsolutePath());
+      }
+
+      if (!dst.exists()) {
+        dst.mkdirs();
+      }
+      if (!dst.isDirectory()) {
+        throw new NotDirectoryException(dst.getAbsolutePath());
+      }
+
+      if (src.isFile()) {
+
+        final File srcImageFile = src;
+
+        System.out.println(getText("text.renaming.image.1", srcImageFile.getPath()));
+
+        final Date date = ImageMetadataHandler.getInstance().getDateTimeOriginal(srcImageFile);
+
+        if (date == null) {
+          throw new IllegalArgumentException("the image does not have DateTimeOriginal metadata");
+        }
+
+        String dstImageFileName = new SimpleDateFormat(pattern).format(date) + getFileExtension(srcImageFile, true);
+
+        if (toLowerCase) {
+          dstImageFileName = dstImageFileName.toLowerCase();
+        } else if (toUpperCase) {
+          dstImageFileName = dstImageFileName.toUpperCase();
+        }
+
+        File dstImageFile = new File(dst, dstImageFileName);
+
+        System.out.println(getText("text.renaming.image.2", dstImageFile.getPath()));
+
+        Files.copy(srcImageFile.toPath(), dstImageFile.toPath());
+
+        System.out.println(getText("text.done"));
+      }
+
+      else if (src.isDirectory()) {
+
+        final File[] srcImageFiles = src.listFiles(ImageFileFilter.getInstance());
+
+        System.out.println(getText("text.renaming.images.1", srcImageFiles.length));
+        System.out.println(getText("text.renaming.images.2", src.getPath()));
+        System.out.println(getText("text.renaming.images.3", dst.getPath()));
+
+        for (int i = 0; i < srcImageFiles.length; i++) {
+          final File srcImageFile = srcImageFiles[i];
+          final Date date = ImageMetadataHandler.getInstance().getDateTimeOriginal(srcImageFile);
+
+          String dstImageFileName;
+
+          if (date == null) {
+            dstImageFileName = counterNF.format(i + 1) + getFileExtension(srcImageFile, true);
+          }
+
+          else {
+
+            final String dstPattern = pattern.replaceAll("\\$\\{counter\\}", counterNF.format(i + 1));
+            final SimpleDateFormat dstSDF = new SimpleDateFormat(dstPattern);
+
+            dstImageFileName = dstSDF.format(date) + getFileExtension(srcImageFile, true);
+          }
+
+          if (toLowerCase) {
+            dstImageFileName = dstImageFileName.toLowerCase();
+          } else if (toUpperCase) {
+            dstImageFileName = dstImageFileName.toUpperCase();
+          }
+
+          Files.copy(srcImageFile.toPath(), new File(dst, dstImageFileName).toPath());
+
+          System.out.println(getText("text.renaming.images.4", srcImageFile.getName(), dstImageFileName));
+        }
+
+        System.out.println(getText("text.done"));
+      }
+
+      else {
+        throw new IllegalArgumentException("illegal input");
+      }
+    }
+
+    catch (Throwable e) {
+      printHelp("-image -rename", options, e);
+    }
+  }
+
+  private String getFileExtension(final File file, final boolean includeSeparator) {
+    final String filename = file.getName();
+    final int indexSeparator = filename.lastIndexOf('.');
+    if (indexSeparator == -1) {
+      return "";
+    } else {
+      if (includeSeparator) {
+        return "." + filename.substring(indexSeparator + 1);
+      } else {
+        return filename.substring(indexSeparator + 1);
+      }
     }
   }
 
