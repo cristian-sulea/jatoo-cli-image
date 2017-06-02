@@ -31,12 +31,18 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 
-import jatoo.cli.AbstractCommand;
+import jatoo.cli.AbstractCLICommand;
 import jatoo.image.ImageFileFilter;
 import jatoo.image.ImageMetadataHandler;
 import jatoo.image.ImageUtils;
 
-public class JatooCLICommand extends AbstractCommand {
+/**
+ * The "image" command for the JaToo CLI project.
+ * 
+ * @author <a href="http://cristian.sulea.net" rel="author">Cristian Sulea</a>
+ * @version 1.2, June 2, 2017
+ */
+public class JatooCLICommand extends AbstractCLICommand {
 
   @Override
   public void execute(final String[] args) {
@@ -47,8 +53,8 @@ public class JatooCLICommand extends AbstractCommand {
     OptionGroup optionGroup = new OptionGroup();
     optionGroup.setRequired(true);
     optionGroup.addOption(Option.builder("resize").desc(getText("desc.option.resize")).build());
-    optionGroup.addOption(Option.builder("crop").desc(getText("desc.option.crop")).build());
-    optionGroup.addOption(Option.builder("rotate").desc(getText("desc.option.rotate")).build());
+    // optionGroup.addOption(Option.builder("crop").desc(getText("desc.option.crop")).build());
+    // optionGroup.addOption(Option.builder("rotate").desc(getText("desc.option.rotate")).build());
     optionGroup.addOption(Option.builder("rename").desc(getText("desc.option.rename")).build());
 
     Options options = new Options();
@@ -68,13 +74,13 @@ public class JatooCLICommand extends AbstractCommand {
         resize(line.getArgs());
       }
 
-      else if (line.hasOption("crop")) {
-        // resize(line.getArgs());
-      }
-
-      else if (line.hasOption("rotate")) {
-        // resize(line.getArgs());
-      }
+      // else if (line.hasOption("crop")) {
+      // // resize(line.getArgs());
+      // }
+      //
+      // else if (line.hasOption("rotate")) {
+      // // resize(line.getArgs());
+      // }
 
       else if (line.hasOption("rename")) {
         rename(line.getArgs());
@@ -131,7 +137,7 @@ public class JatooCLICommand extends AbstractCommand {
     }
   }
 
-  private void resize(final String[] args, boolean fit) {
+  private void resize(final String[] args, final boolean fit) {
 
     //
     // options
@@ -168,7 +174,9 @@ public class JatooCLICommand extends AbstractCommand {
       }
 
       if (!dst.exists()) {
-        dst.mkdirs();
+        if (!dst.mkdirs()) {
+          throw new IllegalArgumentException("dst.mkdirs() failed");
+        }
       }
       if (!dst.isDirectory()) {
         throw new NotDirectoryException(dst.getAbsolutePath());
@@ -200,6 +208,10 @@ public class JatooCLICommand extends AbstractCommand {
       else if (src.isDirectory()) {
 
         File[] srcImageFiles = src.listFiles(ImageFileFilter.getInstance());
+
+        if (srcImageFiles == null) {
+          throw new IllegalArgumentException("src.listFiles() returned \"null\"");
+        }
 
         if (!overwrite) {
           for (File srcImageFile : srcImageFiles) {
@@ -282,7 +294,9 @@ public class JatooCLICommand extends AbstractCommand {
       }
 
       if (!dst.exists()) {
-        dst.mkdirs();
+        if (!dst.mkdirs()) {
+          throw new IllegalArgumentException("dst.mkdirs() failed");
+        }
       }
       if (!dst.isDirectory()) {
         throw new NotDirectoryException(dst.getAbsolutePath());
@@ -320,6 +334,10 @@ public class JatooCLICommand extends AbstractCommand {
       else if (src.isDirectory()) {
 
         final File[] srcImageFiles = src.listFiles(ImageFileFilter.getInstance());
+
+        if (srcImageFiles == null) {
+          throw new IllegalArgumentException("src.listFiles() returned \"null\"");
+        }
 
         System.out.println(getText("text.renaming.images.1", srcImageFiles.length));
         System.out.println(getText("text.renaming.images.2", src.getPath()));
