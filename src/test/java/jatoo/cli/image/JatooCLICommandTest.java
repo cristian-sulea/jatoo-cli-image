@@ -16,8 +16,6 @@
 
 package jatoo.cli.image;
 
-import jatoo.cli.JatooCLI;
-
 public class JatooCLICommandTest {
 
   public static void main(String[] args) {
@@ -56,14 +54,14 @@ public class JatooCLICommandTest {
 //    System.out.println("====================================================================================================");
 //    System.out.println();
     
-    new JatooCLI().execute(
-        new String[] {
-            "-image",
-            "-rename",
-            "-pattern", "yyyyMMdd-HHmmss",
-            "-src", "c:\\Users\\cristian.sulea\\Downloads\\xxx\\20170507_082444585_iOS.jpg",
-            "-dst", "c:\\Users\\cristian.sulea\\Downloads\\yyy"
-        });
+//    new JatooCLI().execute(
+//        new String[] {
+//            "-image",
+//            "-rename",
+//            "-pattern", "yyyyMMdd-HHmmss",
+//            "-src", "c:\\Users\\cristian.sulea\\Downloads\\xxx\\20170507_082444585_iOS.jpg",
+//            "-dst", "c:\\Users\\cristian.sulea\\Downloads\\yyy"
+//        });
     
 //    System.out.println();
 //    System.out.println("====================================================================================================");

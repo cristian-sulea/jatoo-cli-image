@@ -19,13 +19,20 @@
 
   <inceptionYear>2017</inceptionYear>
 
-
   <developers>
     <developer>
       <id>cristian.sulea</id>
       <name>Cristian Sulea</name>
       <email>cristian.sulea.79@gmail.com</email>
       <url>http://cristian.sulea.net</url>
+      <timezone>Europe/Bucharest</timezone>
+      <roles>
+        <role>owner</role>
+        <role>architect</role>
+        <role>developer</role>
+      </roles>
+      <organization>cristian.sulea.net</organization>
+      <organizationUrl>http://cristian.sulea.net</organizationUrl>
     </developer>
   </developers>
 
@@ -41,7 +48,7 @@
 
     <dependency>
       <groupId>net.sulea.cristian</groupId>
-      <artifactId>jatoo-cli</artifactId>
+      <artifactId>jatoo-cli-abstract</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
