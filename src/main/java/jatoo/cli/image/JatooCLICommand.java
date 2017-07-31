@@ -40,9 +40,11 @@ import jatoo.image.ImageUtils;
  * The "image" command for the JaToo CLI project.
  * 
  * @author <a href="http://cristian.sulea.net" rel="author">Cristian Sulea</a>
- * @version 1.2, June 2, 2017
+ * @version 2.0, July 31, 2017
  */
 public class JatooCLICommand extends AbstractCLICommand {
+
+  private static final String OPTION_METADATA = "metadata";
 
   @Override
   public void execute(final String[] args) {
@@ -56,6 +58,7 @@ public class JatooCLICommand extends AbstractCLICommand {
     // optionGroup.addOption(Option.builder("crop").desc(getText("desc.option.crop")).build());
     // optionGroup.addOption(Option.builder("rotate").desc(getText("desc.option.rotate")).build());
     optionGroup.addOption(Option.builder("rename").desc(getText("desc.option.rename")).build());
+    optionGroup.addOption(Option.builder(OPTION_METADATA).desc(getText("desc.option." + OPTION_METADATA)).build());
 
     Options options = new Options();
     options.addOptionGroup(optionGroup);
@@ -84,6 +87,10 @@ public class JatooCLICommand extends AbstractCLICommand {
 
       else if (line.hasOption("rename")) {
         rename(line.getArgs());
+      }
+
+      else if (line.hasOption(OPTION_METADATA)) {
+        metadata(line.getArgs());
       }
 
       else {
@@ -382,6 +389,145 @@ public class JatooCLICommand extends AbstractCLICommand {
 
     catch (Throwable e) {
       printHelp("-image -rename", options, e);
+    }
+  }
+
+  private void metadata(final String[] args) {
+
+    //
+    // options
+
+    OptionGroup actionGroup = new OptionGroup();
+    actionGroup.setRequired(true);
+    actionGroup.addOption(Option.builder("get").desc(getText("desc.option." + OPTION_METADATA + ".get")).build());
+    actionGroup.addOption(Option.builder("set").desc(getText("desc.option." + OPTION_METADATA + ".set")).build());
+
+    Options options = new Options();
+    options.addOption(Option.builder("src").hasArg().required(true).desc(getText("desc.option." + OPTION_METADATA + ".src")).build());
+    options.addOptionGroup(actionGroup);
+
+    //
+    // parse
+
+    try {
+
+      CommandLine line = parse(options, args, true);
+
+      //
+      // and work
+
+      File src = new File(line.getOptionValue("src"));
+
+      if (!src.exists()) {
+        throw new FileNotFoundException("source file (or folder) does not exists: " + src.getAbsolutePath());
+      }
+
+      if (line.hasOption("get")) {
+        metadataGet(src, line.getArgs());
+      }
+
+      else if (line.hasOption("set")) {
+        metadataSet(src, line.getArgs());
+      }
+
+      else {
+        throwUnknownOption();
+      }
+    }
+
+    catch (Throwable e) {
+      printHelp("-image -" + OPTION_METADATA, options, e);
+    }
+  }
+
+  private void metadataGet(final File src, final String[] args) {
+
+    //
+    // options
+
+    Options options = new Options();
+    options.addOption(Option.builder("DateTimeOriginal").required(false).desc(getText("desc.option." + OPTION_METADATA + ".get.DateTimeOriginal")).build());
+
+    //
+    // parse
+
+    try {
+
+      CommandLine line = parse(options, args, true);
+
+      //
+      // and work
+
+      boolean getDateTimeOriginal = line.hasOption("DateTimeOriginal");
+
+      if (src.isFile()) {
+        File srcImageFile = src;
+        
+        System.out.println(srcImageFile);
+        System.out.println("   DateTimeOriginal -> " + ImageMetadataHandler.getInstance().getDateTimeOriginal(srcImageFile));
+        System.out.println();
+      }
+
+      else if (src.isDirectory()) {
+
+        File[] srcImageFiles = src.listFiles(ImageFileFilter.getInstance());
+
+        if (srcImageFiles == null) {
+          throw new IllegalArgumentException("src.listFiles() returned \"null\"");
+        }
+
+        for (File srcImageFile : srcImageFiles) {
+          System.out.println(srcImageFile);
+          System.out.println("   DateTimeOriginal -> " + ImageMetadataHandler.getInstance().getDateTimeOriginal(srcImageFile));
+          System.out.println();
+        }
+      }
+
+      else {
+        throw new IllegalArgumentException("illegal input");
+      }
+    }
+
+    catch (Throwable e) {
+      printHelp("-image -" + OPTION_METADATA + " -get", options, e);
+    }
+  }
+
+  private void metadataSet(final File src, final String[] args) {
+
+    //
+    // options
+
+    Options options = new Options();
+    options.addOption(Option.builder("DateTimeOriginal").required(false).desc(getText("desc.option." + OPTION_METADATA + ".get.DateTimeOriginal")).build());
+
+    //
+    // parse
+
+    try {
+
+      CommandLine line = parse(options, args, true);
+
+      //
+      // and work
+
+      boolean getDateTimeOriginal = line.hasOption("DateTimeOriginal");
+
+      if (src.isFile()) {
+        File srcImageFile = src;
+        
+        System.out.println(srcImageFile);
+        System.out.println("   DateTimeOriginal -> " + ImageMetadataHandler.getInstance().getDateTimeOriginal(srcImageFile));
+        System.out.println();
+      }
+
+      else {
+        throw new IllegalArgumentException("illegal input");
+      }
+    }
+
+    catch (Throwable e) {
+      printHelp("-image -" + OPTION_METADATA + " -get", options, e);
     }
   }
 
