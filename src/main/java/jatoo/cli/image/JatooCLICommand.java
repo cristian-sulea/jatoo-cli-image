@@ -33,6 +33,7 @@ import org.apache.commons.cli.Options;
 
 import jatoo.cli.AbstractCLICommand;
 import jatoo.image.ImageFileFilter;
+import jatoo.image.ImageMetadata;
 import jatoo.image.ImageMetadataHandler;
 import jatoo.image.ImageUtils;
 
@@ -40,7 +41,7 @@ import jatoo.image.ImageUtils;
  * The "image" command for the JaToo CLI project.
  * 
  * @author <a href="http://cristian.sulea.net" rel="author">Cristian Sulea</a>
- * @version 2.0, July 31, 2017
+ * @version 2.0, August 1, 2017
  */
 public class JatooCLICommand extends AbstractCLICommand {
 
@@ -445,8 +446,14 @@ public class JatooCLICommand extends AbstractCLICommand {
     //
     // options
 
+    OptionGroup optionGroup = new OptionGroup();
+    optionGroup.setRequired(true);
+    optionGroup.addOption(Option.builder("all").required(false).desc(getText("desc.option." + OPTION_METADATA + ".get.all")).build());
+    optionGroup.addOption(Option.builder("DateTimeOriginal").required(false).desc(getText("desc.option." + OPTION_METADATA + ".get.DateTimeOriginal")).build());
+
     Options options = new Options();
-    options.addOption(Option.builder("DateTimeOriginal").required(false).desc(getText("desc.option." + OPTION_METADATA + ".get.DateTimeOriginal")).build());
+    options.addOptionGroup(optionGroup);
+    options.addOption(Option.builder("DateTimeOriginalPattern").required(false).hasArg().desc(getText("desc.option." + OPTION_METADATA + ".get.DateTimeOriginalPattern")).build());
 
     //
     // parse
@@ -458,14 +465,12 @@ public class JatooCLICommand extends AbstractCLICommand {
       //
       // and work
 
+      boolean getAll = line.hasOption("all");
       boolean getDateTimeOriginal = line.hasOption("DateTimeOriginal");
+      String patternDateTimeOriginal = line.getOptionValue("DateTimeOriginalPattern");
 
       if (src.isFile()) {
-        File srcImageFile = src;
-        
-        System.out.println(srcImageFile);
-        System.out.println("   DateTimeOriginal -> " + ImageMetadataHandler.getInstance().getDateTimeOriginal(srcImageFile));
-        System.out.println();
+        metadataGetPrint(src, getAll, getDateTimeOriginal, patternDateTimeOriginal);
       }
 
       else if (src.isDirectory()) {
@@ -477,9 +482,7 @@ public class JatooCLICommand extends AbstractCLICommand {
         }
 
         for (File srcImageFile : srcImageFiles) {
-          System.out.println(srcImageFile);
-          System.out.println("   DateTimeOriginal -> " + ImageMetadataHandler.getInstance().getDateTimeOriginal(srcImageFile));
-          System.out.println();
+          metadataGetPrint(srcImageFile, getAll, getDateTimeOriginal, patternDateTimeOriginal);
         }
       }
 
@@ -491,6 +494,30 @@ public class JatooCLICommand extends AbstractCLICommand {
     catch (Throwable e) {
       printHelp("-image -" + OPTION_METADATA + " -get", options, e);
     }
+  }
+
+  private void metadataGetPrint(final File file, final boolean getAll, final boolean getDateTimeOriginal, final String patternDateTimeOriginal) {
+
+    System.out.println(file);
+
+    SimpleDateFormat dateFormat = new SimpleDateFormat(patternDateTimeOriginal == null ? "yyyy-MM-dd HH:mm:ss" : patternDateTimeOriginal);
+
+    if (getAll) {
+
+      ImageMetadata metadata = ImageMetadataHandler.getInstance().getMetadata(file);
+
+      System.out.println("   DateTimeOriginal -> " + dateFormat.format(metadata.getDateTimeOriginal()));
+      System.out.println("   ImageWidth -> " + metadata.getImageWidth());
+      System.out.println("   ImageHeight -> " + metadata.getImageHeight());
+    }
+
+    else {
+      if (getDateTimeOriginal) {
+        System.out.println("   DateTimeOriginal -> " + dateFormat.format(ImageMetadataHandler.getInstance().getDateTimeOriginal(file)));
+      }
+    }
+
+    System.out.println();
   }
 
   private void metadataSet(final File src, final String[] args) {
@@ -515,7 +542,7 @@ public class JatooCLICommand extends AbstractCLICommand {
 
       if (src.isFile()) {
         File srcImageFile = src;
-        
+
         System.out.println(srcImageFile);
         System.out.println("   DateTimeOriginal -> " + ImageMetadataHandler.getInstance().getDateTimeOriginal(srcImageFile));
         System.out.println();

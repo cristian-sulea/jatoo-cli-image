@@ -122,10 +122,18 @@ public class JatooCLICommandTest {
       new String[] {
           "-metadata",
           "-src", "target/test-classes/jatoo/cli/image/20141109144518.jpg",
-          "-get", "-DateTimeOriginal"
+          "-get", "-all"
       });
+
+    new JatooCLICommand().execute(
+        new String[] {
+            "-metadata",
+            "-src", "target/test-classes/jatoo/cli/image/20141109144518.jpg",
+            "-get", "-DateTimeOriginal",
+            "-DateTimeOriginalPattern", "yyyyMMdd-HHmmss"
+        });
 
 //    Assert.assertTrue(new File("target/tests-rename1/").listFiles()[0].getName().length() == 16);
   }
-  
+
 }
