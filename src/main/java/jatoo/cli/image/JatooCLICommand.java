@@ -23,6 +23,7 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.NotDirectoryException;
 import java.text.NumberFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -549,7 +550,6 @@ public class JatooCLICommand extends AbstractCLICommand {
     builderDateTimeOriginal.hasArgs().numberOfArgs(6).argName(getText("desc.option." + OPTION_METADATA + ".set.DateTimeOriginal.argName"));
 
     Option.Builder builderDateTimeOriginalFromFileName = Option.builder("DateTimeOriginalFromFileName").desc(getText("desc.option." + OPTION_METADATA + ".set.DateTimeOriginalFromFileName"));
-    builderDateTimeOriginalFromFileName.argName(getText("desc.option." + OPTION_METADATA + ".set.DateTimeOriginalFromFileName.argName"));
 
     OptionGroup optionGroup = new OptionGroup();
     optionGroup.setRequired(true);
@@ -581,6 +581,10 @@ public class JatooCLICommand extends AbstractCLICommand {
         int second = Integer.parseInt(values[5]);
 
         ImageMetadataHandler.getInstance().setDateTimeOriginal(src, year, month, day, hour, minute, second);
+
+        System.out.println(src);
+        System.out.println("   DateTimeOriginal -> " + (year + "-" + month + "-" + day + " " + hour + ":" + minute + ":" + second));
+        System.out.println();
       }
 
       else if (line.hasOption("DateTimeOriginalFromFileName")) {
@@ -620,15 +624,7 @@ public class JatooCLICommand extends AbstractCLICommand {
       String correction = line.getOptionValue("correction");
 
       if (src.isFile()) {
-
-        Calendar c = Calendar.getInstance();
-        c.setTime(new SimpleDateFormat(pattern).parse(src.getName()));
-
-        if (correction != null) {
-          c.add(Calendar.HOUR_OF_DAY, Integer.parseInt(correction));
-        }
-
-        ImageMetadataHandler.getInstance().setDateTimeOriginal(src, c.getTime());
+        metadataSetDateTimeOriginalFromFileNameExecute(src, pattern, correction);
       }
 
       else if (src.isDirectory()) {
@@ -640,15 +636,7 @@ public class JatooCLICommand extends AbstractCLICommand {
         }
 
         for (File srcImageFile : srcImageFiles) {
-
-          Calendar c = Calendar.getInstance();
-          c.setTime(new SimpleDateFormat(pattern).parse(srcImageFile.getName()));
-
-          if (correction != null) {
-            c.add(Calendar.HOUR_OF_DAY, Integer.parseInt(correction));
-          }
-
-          ImageMetadataHandler.getInstance().setDateTimeOriginal(srcImageFile, c.getTime());
+          metadataSetDateTimeOriginalFromFileNameExecute(srcImageFile, pattern, correction);
         }
       }
 
@@ -660,6 +648,31 @@ public class JatooCLICommand extends AbstractCLICommand {
     catch (Throwable e) {
       printHelp("-image -" + OPTION_METADATA + " -set -DateTimeOriginalFromFileName", options, e);
     }
+  }
+
+  private void metadataSetDateTimeOriginalFromFileNameExecute(final File file, final String pattern, final String correction) {
+
+    System.out.println(file);
+
+    try {
+
+      Calendar c = Calendar.getInstance();
+      c.setTime(new SimpleDateFormat(pattern).parse(file.getName()));
+
+      if (correction != null) {
+        c.add(Calendar.HOUR_OF_DAY, Integer.parseInt(correction));
+      }
+
+      ImageMetadataHandler.getInstance().setDateTimeOriginal(file, c.getTime());
+
+      System.out.println("   DateTimeOriginal -> " + SimpleDateFormat.getDateTimeInstance(3, 2).format(c.getTime()));
+    }
+
+    catch (ParseException e) {
+      System.out.println("   " + e);
+    }
+
+    System.out.println();
   }
 
 }

@@ -116,42 +116,56 @@ public class JatooCLICommandTest {
   }
 
   @Test
-  public void testMetadataGet() throws Exception {
-
+  public void testMetadataGet1() throws Exception {
     new JatooCLICommand().execute(
       new String[] {
           "-metadata",
           "-src", "target/test-classes/jatoo/cli/image/20141109144518.jpg",
           "-get", "-all"
       });
+  }
 
+  @Test
+  public void testMetadataGet2() throws Exception {
     new JatooCLICommand().execute(
         new String[] {
             "-metadata",
             "-src", "target/test-classes/jatoo/cli/image/20141109144518.jpg",
             "-get", "-DateTimeOriginal",
-            "-DateTimeOriginalPattern", "yyyyMMdd-HHmmss"
+            "-DateTimeOriginalPattern", "yyyy-MM-dd HH:mm:ss"
         });
-
-//    Assert.assertTrue(new File("target/tests-rename1/").listFiles()[0].getName().length() == 16);
   }
-
+  
   @Test
-  public void testMetadataSet() throws Exception {
-
-//    new JatooCLICommand().execute(
-//        new String[] {
-//            "-metadata",
-//            "-src", "target/test-classes/jatoo/cli/image/20141109144518.jpg",
-//            "-set", "-DateTimeOriginal", "2011", "11", "11", "11", "11", "11"
-//        });
-
+  public void testMetadataSet1() throws Exception {
     new JatooCLICommand().execute(
         new String[] {
             "-metadata",
-            "-src", "target/test-classes/jatoo/cli/image/xxx/",
+            "-src", "target/test-classes/jatoo/cli/image/20141109144518.jpg",
+            "-set", "-DateTimeOriginal", "2011", "11", "11", "11", "11", "11"
+        });
+  }
+
+  @Test
+  public void testMetadataSet2() throws Exception {
+    new JatooCLICommand().execute(
+        new String[] {
+            "-metadata",
+            "-src", "target/test-classes/jatoo/cli/image/20141109144518-400x300.jpg",
             "-set", "-DateTimeOriginalFromFileName",
-            "-pattern", "yyyyMMdd_hhmmssSSS'_iOS.jpg'",
+            "-pattern", "yyyyMMddHHmmss'-400x300.jpg'",
+            "-correction", "3"
+        });
+  }
+
+  @Test
+  public void testMetadataSet3() throws Exception {
+    new JatooCLICommand().execute(
+        new String[] {
+            "-metadata",
+            "-src", "target/test-classes/jatoo/cli/image/",
+            "-set", "-DateTimeOriginalFromFileName",
+            "-pattern", "yyyyMMddHHmmss'.jpg'",
             "-correction", "3"
         });
   }
