@@ -24,6 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.NotDirectoryException;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 import org.apache.commons.cli.CommandLine;
@@ -547,9 +548,13 @@ public class JatooCLICommand extends AbstractCLICommand {
     Option.Builder builderDateTimeOriginal = Option.builder("DateTimeOriginal").desc(getText("desc.option." + OPTION_METADATA + ".set.DateTimeOriginal"));
     builderDateTimeOriginal.hasArgs().numberOfArgs(6).argName(getText("desc.option." + OPTION_METADATA + ".set.DateTimeOriginal.argName"));
 
+    Option.Builder builderDateTimeOriginalFromFileName = Option.builder("DateTimeOriginalFromFileName").desc(getText("desc.option." + OPTION_METADATA + ".set.DateTimeOriginalFromFileName"));
+    builderDateTimeOriginalFromFileName.argName(getText("desc.option." + OPTION_METADATA + ".set.DateTimeOriginalFromFileName.argName"));
+
     OptionGroup optionGroup = new OptionGroup();
     optionGroup.setRequired(true);
     optionGroup.addOption(builderDateTimeOriginal.build());
+    optionGroup.addOption(builderDateTimeOriginalFromFileName.build());
 
     Options options = new Options();
     options.addOptionGroup(optionGroup);
@@ -564,18 +569,22 @@ public class JatooCLICommand extends AbstractCLICommand {
       //
       // and work
 
-      String[] setDateTimeOriginal = line.getOptionValues("DateTimeOriginal");
+      if (line.hasOption("DateTimeOriginal")) {
 
-      if (setDateTimeOriginal != null) {
+        String[] values = line.getOptionValues("DateTimeOriginal");
 
-        int year = Integer.parseInt(setDateTimeOriginal[0]);
-        int month = Integer.parseInt(setDateTimeOriginal[1]);
-        int day = Integer.parseInt(setDateTimeOriginal[2]);
-        int hour = Integer.parseInt(setDateTimeOriginal[3]);
-        int minute = Integer.parseInt(setDateTimeOriginal[4]);
-        int second = Integer.parseInt(setDateTimeOriginal[5]);
+        int year = Integer.parseInt(values[0]);
+        int month = Integer.parseInt(values[1]);
+        int day = Integer.parseInt(values[2]);
+        int hour = Integer.parseInt(values[3]);
+        int minute = Integer.parseInt(values[4]);
+        int second = Integer.parseInt(values[5]);
 
         ImageMetadataHandler.getInstance().setDateTimeOriginal(src, year, month, day, hour, minute, second);
+      }
+
+      else if (line.hasOption("DateTimeOriginalFromFileName")) {
+        metadataSetDateTimeOriginalFromFileName(src, line.getArgs());
       }
 
       else {
@@ -584,7 +593,72 @@ public class JatooCLICommand extends AbstractCLICommand {
     }
 
     catch (Throwable e) {
-      printHelp("-image -" + OPTION_METADATA + " -get", options, e);
+      printHelp("-image -" + OPTION_METADATA + " -set", options, e);
+    }
+  }
+
+  private void metadataSetDateTimeOriginalFromFileName(final File src, final String[] args) {
+
+    //
+    // options
+
+    Options options = new Options();
+    options.addOption(Option.builder("pattern").required(true).hasArg().desc(getText("desc.option." + OPTION_METADATA + ".set.DateTimeOriginalFromFileName.pattern")).build());
+    options.addOption(Option.builder("correction").required(false).hasArg().desc(getText("desc.option." + OPTION_METADATA + ".set.DateTimeOriginalFromFileName.correction")).build());
+
+    //
+    // parse
+
+    try {
+
+      CommandLine line = parse(options, args, true);
+
+      //
+      // and work
+
+      String pattern = line.getOptionValue("pattern");
+      String correction = line.getOptionValue("correction");
+
+      if (src.isFile()) {
+
+        Calendar c = Calendar.getInstance();
+        c.setTime(new SimpleDateFormat(pattern).parse(src.getName()));
+
+        if (correction != null) {
+          c.add(Calendar.HOUR_OF_DAY, Integer.parseInt(correction));
+        }
+
+        ImageMetadataHandler.getInstance().setDateTimeOriginal(src, c.getTime());
+      }
+
+      else if (src.isDirectory()) {
+
+        File[] srcImageFiles = src.listFiles(ImageFileFilter.getInstance());
+
+        if (srcImageFiles == null) {
+          throw new IllegalArgumentException("src.listFiles() returned \"null\"");
+        }
+
+        for (File srcImageFile : srcImageFiles) {
+
+          Calendar c = Calendar.getInstance();
+          c.setTime(new SimpleDateFormat(pattern).parse(srcImageFile.getName()));
+
+          if (correction != null) {
+            c.add(Calendar.HOUR_OF_DAY, Integer.parseInt(correction));
+          }
+
+          ImageMetadataHandler.getInstance().setDateTimeOriginal(srcImageFile, c.getTime());
+        }
+      }
+
+      else {
+        throw new IllegalArgumentException("illegal input");
+      }
+    }
+
+    catch (Throwable e) {
+      printHelp("-image -" + OPTION_METADATA + " -set -DateTimeOriginalFromFileName", options, e);
     }
   }
 

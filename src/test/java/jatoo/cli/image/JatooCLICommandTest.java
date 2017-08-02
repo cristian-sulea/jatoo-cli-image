@@ -139,11 +139,20 @@ public class JatooCLICommandTest {
   @Test
   public void testMetadataSet() throws Exception {
 
+//    new JatooCLICommand().execute(
+//        new String[] {
+//            "-metadata",
+//            "-src", "target/test-classes/jatoo/cli/image/20141109144518.jpg",
+//            "-set", "-DateTimeOriginal", "2011", "11", "11", "11", "11", "11"
+//        });
+
     new JatooCLICommand().execute(
         new String[] {
             "-metadata",
-            "-src", "target/test-classes/jatoo/cli/image/20141109144518.jpg",
-            "-set", "-DateTimeOriginal", "2011", "11", "11", "11", "11", "11"
+            "-src", "target/test-classes/jatoo/cli/image/xxx/",
+            "-set", "-DateTimeOriginalFromFileName",
+            "-pattern", "yyyyMMdd_hhmmssSSS'_iOS.jpg'",
+            "-correction", "3"
         });
   }
 
