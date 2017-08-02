@@ -448,8 +448,8 @@ public class JatooCLICommand extends AbstractCLICommand {
 
     OptionGroup optionGroup = new OptionGroup();
     optionGroup.setRequired(true);
-    optionGroup.addOption(Option.builder("all").required(false).desc(getText("desc.option." + OPTION_METADATA + ".get.all")).build());
-    optionGroup.addOption(Option.builder("DateTimeOriginal").required(false).desc(getText("desc.option." + OPTION_METADATA + ".get.DateTimeOriginal")).build());
+    optionGroup.addOption(Option.builder("all").desc(getText("desc.option." + OPTION_METADATA + ".get.all")).build());
+    optionGroup.addOption(Option.builder("DateTimeOriginal").desc(getText("desc.option." + OPTION_METADATA + ".get.DateTimeOriginal")).build());
 
     Options options = new Options();
     options.addOptionGroup(optionGroup);
@@ -525,8 +525,15 @@ public class JatooCLICommand extends AbstractCLICommand {
     //
     // options
 
+    Option.Builder builderDateTimeOriginal = Option.builder("DateTimeOriginal").desc(getText("desc.option." + OPTION_METADATA + ".set.DateTimeOriginal"));
+    builderDateTimeOriginal.hasArgs().numberOfArgs(6).argName(getText("desc.option." + OPTION_METADATA + ".set.DateTimeOriginal.argName"));
+
+    OptionGroup optionGroup = new OptionGroup();
+    optionGroup.setRequired(true);
+    optionGroup.addOption(builderDateTimeOriginal.build());
+
     Options options = new Options();
-    options.addOption(Option.builder("DateTimeOriginal").required(false).desc(getText("desc.option." + OPTION_METADATA + ".get.DateTimeOriginal")).build());
+    options.addOptionGroup(optionGroup);
 
     //
     // parse
@@ -538,18 +545,18 @@ public class JatooCLICommand extends AbstractCLICommand {
       //
       // and work
 
-      boolean getDateTimeOriginal = line.hasOption("DateTimeOriginal");
+      String[] setDateTimeOriginal = line.getOptionValues("DateTimeOriginal");
 
-      if (src.isFile()) {
-        File srcImageFile = src;
+      if (setDateTimeOriginal != null) {
 
-        System.out.println(srcImageFile);
-        System.out.println("   DateTimeOriginal -> " + ImageMetadataHandler.getInstance().getDateTimeOriginal(srcImageFile));
-        System.out.println();
-      }
+        int year = Integer.parseInt(setDateTimeOriginal[0]);
+        int month = Integer.parseInt(setDateTimeOriginal[1]);
+        int day = Integer.parseInt(setDateTimeOriginal[2]);
+        int hour = Integer.parseInt(setDateTimeOriginal[3]);
+        int minute = Integer.parseInt(setDateTimeOriginal[4]);
+        int second = Integer.parseInt(setDateTimeOriginal[5]);
 
-      else {
-        throw new IllegalArgumentException("illegal input");
+        ImageMetadataHandler.getInstance().setDateTimeOriginal(src, year, month, day, hour, minute, second);
       }
     }
 

@@ -136,4 +136,15 @@ public class JatooCLICommandTest {
 //    Assert.assertTrue(new File("target/tests-rename1/").listFiles()[0].getName().length() == 16);
   }
 
+  @Test
+  public void testMetadataSet() throws Exception {
+
+    new JatooCLICommand().execute(
+        new String[] {
+            "-metadata",
+            "-src", "target/test-classes/jatoo/cli/image/20141109144518.jpg",
+            "-set", "-DateTimeOriginal", "2011", "11", "11", "11", "11", "11"
+        });
+  }
+
 }
