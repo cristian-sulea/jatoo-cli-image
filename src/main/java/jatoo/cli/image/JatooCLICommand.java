@@ -41,7 +41,7 @@ import jatoo.image.ImageUtils;
  * The "image" command for the JaToo CLI project.
  * 
  * @author <a href="http://cristian.sulea.net" rel="author">Cristian Sulea</a>
- * @version 2.0, August 1, 2017
+ * @version 2.0, August 2, 2017
  */
 public class JatooCLICommand extends AbstractCLICommand {
 
@@ -322,7 +322,7 @@ public class JatooCLICommand extends AbstractCLICommand {
           throw new IllegalArgumentException("the image does not have DateTimeOriginal metadata");
         }
 
-        String dstImageFileName = new SimpleDateFormat(pattern).format(date) + getFileExtension(srcImageFile, true);
+        String dstImageFileName = new SimpleDateFormat(pattern).format(date) + renameGetFileExtension(srcImageFile, true);
 
         if (toLowerCase) {
           dstImageFileName = dstImageFileName.toLowerCase();
@@ -358,7 +358,7 @@ public class JatooCLICommand extends AbstractCLICommand {
           String dstImageFileName;
 
           if (date == null) {
-            dstImageFileName = counterNF.format(i + 1) + getFileExtension(srcImageFile, true);
+            dstImageFileName = counterNF.format(i + 1) + renameGetFileExtension(srcImageFile, true);
           }
 
           else {
@@ -366,7 +366,7 @@ public class JatooCLICommand extends AbstractCLICommand {
             final String dstPattern = pattern.replaceAll("\\$\\{counter\\}", counterNF.format(i + 1));
             final SimpleDateFormat dstSDF = new SimpleDateFormat(dstPattern);
 
-            dstImageFileName = dstSDF.format(date) + getFileExtension(srcImageFile, true);
+            dstImageFileName = dstSDF.format(date) + renameGetFileExtension(srcImageFile, true);
           }
 
           if (toLowerCase) {
@@ -390,6 +390,20 @@ public class JatooCLICommand extends AbstractCLICommand {
 
     catch (Throwable e) {
       printHelp("-image -rename", options, e);
+    }
+  }
+
+  private String renameGetFileExtension(final File file, final boolean includeSeparator) {
+    final String filename = file.getName();
+    final int indexSeparator = filename.lastIndexOf('.');
+    if (indexSeparator == -1) {
+      return "";
+    } else {
+      if (includeSeparator) {
+        return "." + filename.substring(indexSeparator + 1);
+      } else {
+        return filename.substring(indexSeparator + 1);
+      }
     }
   }
 
@@ -512,8 +526,13 @@ public class JatooCLICommand extends AbstractCLICommand {
     }
 
     else {
+
       if (getDateTimeOriginal) {
         System.out.println("   DateTimeOriginal -> " + dateFormat.format(ImageMetadataHandler.getInstance().getDateTimeOriginal(file)));
+      }
+
+      else {
+        throwUnknownOption();
       }
     }
 
@@ -558,24 +577,14 @@ public class JatooCLICommand extends AbstractCLICommand {
 
         ImageMetadataHandler.getInstance().setDateTimeOriginal(src, year, month, day, hour, minute, second);
       }
+
+      else {
+        throwUnknownOption();
+      }
     }
 
     catch (Throwable e) {
       printHelp("-image -" + OPTION_METADATA + " -get", options, e);
-    }
-  }
-
-  private String getFileExtension(final File file, final boolean includeSeparator) {
-    final String filename = file.getName();
-    final int indexSeparator = filename.lastIndexOf('.');
-    if (indexSeparator == -1) {
-      return "";
-    } else {
-      if (includeSeparator) {
-        return "." + filename.substring(indexSeparator + 1);
-      } else {
-        return filename.substring(indexSeparator + 1);
-      }
     }
   }
 
